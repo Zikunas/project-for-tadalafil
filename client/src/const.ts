@@ -4,14 +4,25 @@ export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 export const getLoginUrl = () => {
   const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
   const appId = import.meta.env.VITE_APP_ID;
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
-  const state = btoa(redirectUri);
 
-  const url = new URL(`${oauthPortalUrl}/app-auth`);
-  url.searchParams.set("appId", appId);
-  url.searchParams.set("redirectUri", redirectUri);
-  url.searchParams.set("state", state);
-  url.searchParams.set("type", "signIn");
+  // Bug fix: if OAuth environment variables are missing, fallback to the Admin Login page
+  // so the login buttons on the site still function and allow testing.
+  if (!oauthPortalUrl || !appId) {
+    console.warn("[Auth] OAuth environment variables are missing. Falling back to Admin Login.");
+    return "/admin-login";
+  }
 
-  return url.toString();
+  try {
+    const redirectUri = `${window.location.origin}/api/oauth/callback`;
+    const state = btoa(redirectUri);
+    const url = new URL(`${oauthPortalUrl}/app-auth`);
+    url.searchParams.set("appId", appId);
+    url.searchParams.set("redirectUri", redirectUri);
+    url.searchParams.set("state", state);
+    url.searchParams.set("type", "signIn");
+    return url.toString();
+  } catch (error) {
+    console.error("[Auth] Failed to construct login URL:", error);
+    return "/admin-login";
+  }
 };
