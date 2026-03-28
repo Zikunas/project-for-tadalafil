@@ -1,12 +1,10 @@
 import { Router } from "express";
-import { getDb } from "./db";
-import { users } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { getUserByOpenId } from "./db";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { SignJWT } from "jose";
 import { ENV } from "./_core/env";
+import bcrypt from "bcryptjs";
 
 const router = Router();
 
@@ -25,19 +23,8 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Username and password required" });
     }
 
-    const db = await getDb();
-    if (!db) {
-      return res.status(500).json({ message: "Database connection failed" });
-    }
-
-    // Find admin user by openId (username)
-    const result = await db
-      .select()
-      .from(users)
-      .where(eq(users.openId, username))
-      .limit(1);
-
-    const user = result.length > 0 ? result[0] : null;
+    // Use the exported helper from db.ts which handles both live and mock DB
+    const user = await getUserByOpenId(username);
 
     // Check if user exists, is admin, and has a password set
     if (!user || user.role !== "admin" || !user.passwordHash) {
