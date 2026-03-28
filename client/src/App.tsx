@@ -12,6 +12,7 @@ import SelfCheck from "./pages/SelfCheck";
 import Payment from "./pages/Payment";
 import Account from "./pages/Account";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminLogin from "./pages/AdminLogin";
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/thanh-toan" component={Payment} />
       <Route path="/tai-khoan" component={Account} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin-login" component={AdminLogin} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE users SET openId='admin19', name='Admin', email='admin@vietmenshealth.com', role='admin', loginMethod='manual' WHERE openId='admin1908';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3VfY75rRMnfqxph.root --database ZWVTLRHfv6ykA55PzP5wz2 --execute UPDATE users SET openId='admin19', name='Admin', email='admin@vietmenshealth.com', role='admin', loginMethod='manual' WHERE openId='admin1908';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 352
+}

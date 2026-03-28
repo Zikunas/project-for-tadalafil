@@ -21,7 +21,7 @@ export default function AdminDashboard() {
 
   // Redirect if not admin
   useEffect(() => {
-    if (!loading && user?.role !== "admin") {
+    if (!loading && (!user || user.role !== "admin")) {
       navigate("/", { replace: true });
     }
   }, [user, loading, navigate]);
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
   };
 
   if (loading) return <div>Đang tải...</div>;
-  if (user?.role !== "admin") return null;
+  if (!user || user.role !== "admin") return null;
 
   return (
     <DashboardLayout>
