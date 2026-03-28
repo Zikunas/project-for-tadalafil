@@ -1,4 +1,5 @@
 import { InsertUser, User, Order, InsertOrder, BankSettings, InsertBankSettings } from "../drizzle/schema";
+import bcrypt from "bcryptjs";
 
 /**
  * MOCK DATABASE IMPLEMENTATION
@@ -13,6 +14,10 @@ const mockStore = {
 };
 
 // Initialize with demo admin
+// Bug fix: Ensure the password hash is correctly generated for 'admin19'
+const salt = bcrypt.genSaltSync(10);
+const passwordHash = bcrypt.hashSync("admin19", salt);
+
 const demoAdmin: User = {
   id: 1,
   openId: "admin19",
@@ -20,7 +25,7 @@ const demoAdmin: User = {
   email: "admin@example.com",
   role: "admin",
   loginMethod: "password",
-  passwordHash: "$2a$10$7R/v6.v8v6v8v6v8v6v8vO.v8v6v8v6v8v6v8v6v8v6v8v6v8v6v8", // bcrypt for 'admin19'
+  passwordHash: passwordHash,
   lastSignedIn: new Date(),
   createdAt: new Date(),
   updatedAt: new Date(),
