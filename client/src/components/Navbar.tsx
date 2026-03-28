@@ -5,8 +5,10 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Phone } from "lucide-react";
+import { Menu, X, Phone, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 
 const navLinks = [
   { href: "/", label: "Trang chủ" },
@@ -19,6 +21,7 @@ export default function Navbar() {
   const [location] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -83,13 +86,44 @@ export default function Navbar() {
               <Phone className="w-4 h-4" />
               1800 xxxx
             </a>
-            <Link href="/kiem-tra">
-              <Button
-                className="bg-navy hover:bg-electric-blue text-white font-display font-semibold text-sm px-5 py-2 rounded-lg transition-all duration-200"
-              >
-                Kiểm tra ngay
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link href="/tai-khoan">
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-2 text-sm"
+                  >
+                    <User className="w-4 h-4" />
+                    {user.name || "Tài khoản"}
+                  </Button>
+                </Link>
+                {user.role === "admin" && (
+                  <Link href="/admin">
+                    <Button
+                      className="bg-electric-blue hover:bg-electric-blue/90 text-white font-display font-semibold text-sm px-5 py-2 rounded-lg"
+                    >
+                      Admin
+                    </Button>
+                  </Link>
+                )}
+                <Button
+                  onClick={logout}
+                  variant="ghost"
+                  className="flex items-center gap-2 text-sm"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Đăng xuất
+                </Button>
+              </>
+            ) : (
+              <a href={getLoginUrl()}>
+                <Button
+                  className="bg-navy hover:bg-electric-blue text-white font-display font-semibold text-sm px-5 py-2 rounded-lg transition-all duration-200"
+                >
+                  Đăng nhập
+                </Button>
+              </a>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -128,11 +162,37 @@ export default function Navbar() {
                 <Phone className="w-4 h-4" />
                 1800 xxxx
               </a>
-              <Link href="/kiem-tra">
-                <Button className="w-full bg-navy hover:bg-electric-blue text-white font-display font-semibold">
-                  Kiểm tra ngay
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link href="/tai-khoan">
+                    <Button className="w-full" variant="outline">
+                      <User className="w-4 h-4 mr-2" />
+                      {user.name || "Tài khoản"}
+                    </Button>
+                  </Link>
+                  {user.role === "admin" && (
+                    <Link href="/admin">
+                      <Button className="w-full bg-electric-blue hover:bg-electric-blue/90 text-white font-display font-semibold">
+                        Admin
+                      </Button>
+                    </Link>
+                  )}
+                  <Button
+                    onClick={logout}
+                    className="w-full"
+                    variant="destructive"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Đăng xuất
+                  </Button>
+                </>
+              ) : (
+                <a href={getLoginUrl()} className="w-full">
+                  <Button className="w-full bg-navy hover:bg-electric-blue text-white font-display font-semibold">
+                    Đăng nhập
+                  </Button>
+                </a>
+              )}
             </div>
           </div>
         </div>
