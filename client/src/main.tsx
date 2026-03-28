@@ -10,15 +10,24 @@ import "./index.css";
 
 const queryClient = new QueryClient();
 
+/**
+ * When an UNAUTHORIZED error occurs, redirect to the appropriate login page.
+ * - If the current path is under /admin, redirect to /admin-login (username/password flow).
+ * - Otherwise redirect to the OAuth portal.
+ */
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
 
   const isUnauthorized = error.message === UNAUTHED_ERR_MSG;
-
   if (!isUnauthorized) return;
 
-  window.location.href = getLoginUrl();
+  const isAdminPath = window.location.pathname.startsWith("/admin");
+  if (isAdminPath) {
+    window.location.href = "/admin-login";
+  } else {
+    window.location.href = getLoginUrl();
+  }
 };
 
 queryClient.getQueryCache().subscribe(event => {

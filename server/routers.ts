@@ -40,12 +40,19 @@ export const appRouter = router({
           paymentMethod: "bank_transfer",
         });
       }),
-    
+
+    // User: list own orders only
     list: protectedProcedure
       .query(async ({ ctx }) => {
         return await db.getUserOrders(ctx.user.id);
       }),
-    
+
+    // Admin: list ALL orders from every user
+    listAll: adminProcedure
+      .query(async () => {
+        return await db.getAllOrders();
+      }),
+
     updateStatus: adminProcedure
       .input(z.object({
         orderId: z.number().int(),
@@ -61,7 +68,7 @@ export const appRouter = router({
       .query(async () => {
         return await db.getBankSettings();
       }),
-    
+
     updateBankSettings: adminProcedure
       .input(z.object({
         bankName: z.string().optional(),

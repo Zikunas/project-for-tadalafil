@@ -5,10 +5,17 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
 import { ENV } from "./_core/env";
 
 const router = Router();
+
+/**
+ * Helper: derive the session secret key (same as sdk.ts uses for verifySession)
+ */
+function getSessionSecret() {
+  return new TextEncoder().encode(ENV.cookieSecret);
+}
 
 router.post("/login", async (req, res) => {
   try {
@@ -32,7 +39,7 @@ router.post("/login", async (req, res) => {
 
     const user = result.length > 0 ? result[0] : null;
 
-    // Check if user exists, is admin, and password matches
+    // Check if user exists, is admin, and has a password set
     if (!user || user.role !== "admin" || !user.passwordHash) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -42,21 +49,24 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Create JWT session
-    const token = jwt.sign(
-      {
-        id: user.id,
-        openId: user.openId,
-        role: user.role,
-        email: user.email,
-      },
-      ENV.cookieSecret,
-      { expiresIn: "7d" }
-    );
+    // Create session token using jose (same library + same payload shape as sdk.verifySession)
+    const issuedAt = Date.now();
+    const expiresInMs = 7 * 24 * 60 * 60 * 1000; // 7 days
+    const expirationSeconds = Math.floor((issuedAt + expiresInMs) / 1000);
+    const secretKey = getSessionSecret();
 
-    // Set session cookie
+    const token = await new SignJWT({
+      openId: user.openId,
+      appId: ENV.appId,
+      name: user.name || user.openId,
+    })
+      .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+      .setExpirationTime(expirationSeconds)
+      .sign(secretKey);
+
+    // Set session cookie (same cookie name and options as OAuth flow)
     const cookieOptions = getSessionCookieOptions(req);
-    res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.cookie(COOKIE_NAME, token, { ...cookieOptions, maxAge: expiresInMs });
 
     res.json({
       success: true,

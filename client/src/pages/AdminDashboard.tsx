@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   // Redirect if not admin
   useEffect(() => {
     if (!loading && (!user || user.role !== "admin")) {
-      navigate("/", { replace: true });
+      navigate("/admin-login", { replace: true });
     }
   }, [user, loading, navigate]);
 
@@ -30,8 +30,8 @@ export default function AdminDashboard() {
   const { data: bankSettings, isLoading: bankLoading } = trpc.payment.getBankSettings.useQuery();
   const updateBankMutation = trpc.payment.updateBankSettings.useMutation();
 
-  // Fetch orders
-  const { data: allOrders = [] } = trpc.orders.list.useQuery();
+  // Bug fix: use orders.listAll (admin-scoped, returns ALL orders) instead of orders.list (user-scoped)
+  const { data: allOrders = [] } = trpc.orders.listAll.useQuery();
   const updateOrderMutation = trpc.orders.updateStatus.useMutation();
 
   useEffect(() => {
@@ -118,49 +118,53 @@ export default function AdminDashboard() {
         {/* Orders Management */}
         <Card className="p-6">
           <h2 className="text-2xl font-bold mb-4">Quản lý đơn hàng</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">ID</th>
-                  <th className="text-left py-2">Sản phẩm</th>
-                  <th className="text-left py-2">Số lượng</th>
-                  <th className="text-left py-2">Giá</th>
-                  <th className="text-left py-2">Trạng thái</th>
-                  <th className="text-left py-2">Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allOrders.map((order) => (
-                  <tr key={order.id} className="border-b">
-                    <td className="py-2">{order.id}</td>
-                    <td className="py-2">{order.productName}</td>
-                    <td className="py-2">{order.quantity}</td>
-                    <td className="py-2">{(order.totalAmount / 100).toLocaleString("vi-VN")} ₫</td>
-                    <td className="py-2">
-                      <select
-                        value={order.status}
-                        onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
-                        className="border rounded px-2 py-1"
-                      >
-                        <option value="pending">Chờ xử lý</option>
-                        <option value="paid">Đã thanh toán</option>
-                        <option value="processing">Đang xử lý</option>
-                        <option value="shipped">Đã gửi</option>
-                        <option value="delivered">Đã giao</option>
-                        <option value="cancelled">Hủy</option>
-                      </select>
-                    </td>
-                    <td className="py-2">
-                      <Button size="sm" variant="outline">
-                        Chi tiết
-                      </Button>
-                    </td>
+          {allOrders.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">Chưa có đơn hàng nào</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2">ID</th>
+                    <th className="text-left py-2">Sản phẩm</th>
+                    <th className="text-left py-2">Số lượng</th>
+                    <th className="text-left py-2">Giá</th>
+                    <th className="text-left py-2">Trạng thái</th>
+                    <th className="text-left py-2">Hành động</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {allOrders.map((order) => (
+                    <tr key={order.id} className="border-b">
+                      <td className="py-2">{order.id}</td>
+                      <td className="py-2">{order.productName}</td>
+                      <td className="py-2">{order.quantity}</td>
+                      <td className="py-2">{(order.totalAmount / 100).toLocaleString("vi-VN")} ₫</td>
+                      <td className="py-2">
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
+                          className="border rounded px-2 py-1"
+                        >
+                          <option value="pending">Chờ xử lý</option>
+                          <option value="paid">Đã thanh toán</option>
+                          <option value="processing">Đang xử lý</option>
+                          <option value="shipped">Đã gửi</option>
+                          <option value="delivered">Đã giao</option>
+                          <option value="cancelled">Hủy</option>
+                        </select>
+                      </td>
+                      <td className="py-2">
+                        <Button size="sm" variant="outline">
+                          Chi tiết
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </Card>
       </div>
     </DashboardLayout>

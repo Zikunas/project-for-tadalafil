@@ -114,6 +114,18 @@ export async function getUserOrders(userId: number): Promise<Order[]> {
   }
 }
 
+/** Admin-only: fetch ALL orders from all users */
+export async function getAllOrders(): Promise<Order[]> {
+  const db = await getDb();
+  if (!db) return [];
+  try {
+    return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to get all orders:", error);
+    return [];
+  }
+}
+
 export async function updateOrderStatus(orderId: number, status: Order["status"]): Promise<boolean> {
   const db = await getDb();
   if (!db) return false;

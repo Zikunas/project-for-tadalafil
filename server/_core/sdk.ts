@@ -270,7 +270,9 @@ class SDKServer {
     const signedInAt = new Date();
     let user = await db.getUserByOpenId(sessionUserId);
 
-    // If user not in DB, sync from OAuth server automatically
+    // If user not in DB, try to sync from OAuth server.
+    // NOTE: Admin-login tokens are issued for users already in the DB,
+    // so this branch is only reached for OAuth users not yet synced.
     if (!user) {
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
@@ -283,8 +285,13 @@ class SDKServer {
         });
         user = await db.getUserByOpenId(userInfo.openId);
       } catch (error) {
-        console.error("[Auth] Failed to sync user from OAuth:", error);
-        throw ForbiddenError("Failed to sync user info");
+        // If OAuth sync fails, check once more whether the user was created
+        // via the admin-login route (already in DB but not found on first lookup).
+        user = await db.getUserByOpenId(sessionUserId);
+        if (!user) {
+          console.error("[Auth] Failed to sync user from OAuth:", error);
+          throw ForbiddenError("Failed to sync user info");
+        }
       }
     }
 

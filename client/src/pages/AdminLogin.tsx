@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,12 +6,21 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function AdminLogin() {
   const [, navigate] = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Bug fix: if already authenticated as admin, skip login and go straight to dashboard
+  const { user, loading } = useAuth();
+  useEffect(() => {
+    if (!loading && user && user.role === "admin") {
+      navigate("/admin", { replace: true });
+    }
+  }, [user, loading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +47,9 @@ export default function AdminLogin() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking auth
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Đang tải...</div>;
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
