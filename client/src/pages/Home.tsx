@@ -6,6 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 import {
   ArrowRight, CheckCircle2, Shield, Lock, Star,
   ChevronDown, BookOpen, Video, Package, HeartPulse,
@@ -72,6 +73,10 @@ const faqData = [
 ];
 
 export default function Home() {
+  // The userAuth hooks provides authentication state
+  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const statsSection = useInView();
